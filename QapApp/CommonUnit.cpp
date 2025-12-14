@@ -38,7 +38,7 @@ ADDBEG()\
 ADDVAR(t_node,n,DEF,$,$)\
 ADDVAR(int,b,SET,10,$)\
 ADDVAR(double,c,SET,20,$)\
-ADDVAR(string,more,SET,"2025.12.03 18:07",$)\
+ADDVAR(string,more,SET,"2025.12.13 18:07",$)\
 ADDVAR(double,z,SET,30,$)\
 ADDEND()
 //=====+>>>>>t_some_class
@@ -276,6 +276,8 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     Env.OwnerEnv=&Env;
     TCompileUnitMan::reg_and_run_all(Env);
     main_2025(Env);
+    main_2025_1(Env);
+    main_2025_2(Env);
     if(0)Env.OwnerEnv=nullptr;
   }
   return 0;
