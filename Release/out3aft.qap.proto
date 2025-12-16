@@ -1,0 +1,694 @@
+int(11)
+vector<EnvDefTypeStr>
+{
+  //0
+  EnvDefTypeStr
+  {
+    Decl = EnvDefTypeSymbol
+    {
+      Decl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Def$$<DeclareTypeSys>::GetRTTI())
+      }
+      Name = string("DeclareTypeSys")
+    }
+    Impl = EnvDefEntryPoint
+    {
+      Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<DeclareTypeSys>::GetRTTI())
+    }
+  }
+  ,
+  //1
+  EnvDefTypeStr
+  {
+    Decl = EnvDefTypeSymbol
+    {
+      Decl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Def$$<DeclareTypeSelfPtr>::GetRTTI())
+      }
+      Name = string("DeclareTypeSelfPtr")
+    }
+    Impl = EnvDefEntryPoint
+    {
+      Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<DeclareTypeSelfPtr>::GetRTTI())
+    }
+  }
+  ,
+  //2
+  EnvDefTypeStr
+  {
+    Decl = EnvDefTypeSymbol
+    {
+      Decl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Def$$<DeclareTypeWeakPtr>::GetRTTI())
+      }
+      Name = string("DeclareTypeWeakPtr")
+    }
+    Impl = EnvDefEntryPoint
+    {
+      Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<DeclareTypeWeakPtr>::GetRTTI())
+    }
+  }
+  ,
+  //3
+  EnvDefTypeStr
+  {
+    Decl = EnvDefTypeSymbol
+    {
+      Decl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Def$$<DeclareTypeVector>::GetRTTI())
+      }
+      Name = string("DeclareTypeVector")
+    }
+    Impl = EnvDefEntryPoint
+    {
+      Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<DeclareTypeVector>::GetRTTI())
+    }
+  }
+  ,
+  //4
+  EnvDefTypeStr
+  {
+    Decl = EnvDefTypeSymbol
+    {
+      Decl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Def$$<DeclareTypeStruct>::GetRTTI())
+      }
+      Name = string("DeclareTypeStruct")
+    }
+    Impl = EnvDefEntryPoint
+    {
+      Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<DeclareTypeStruct>::GetRTTI())
+    }
+  }
+}
+int(43)
+FullDeclareEnvRTTI
+{
+  DeclEnv = DeclareEnvRTTI
+  {
+    Arr = vector<TAutoPtr<DeclareType>>
+    {
+      //0
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeSys
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<string>::GetRTTI())
+          }
+          FullName = string("string")
+        }
+      }
+      ,
+      //1
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeSys
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<int>::GetRTTI())
+          }
+          FullName = string("int")
+        }
+      }
+      ,
+      //2
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeStruct
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<t_world>::GetRTTI())
+          }
+          Name = string("t_world")
+          SubType = TWeakPtr<DeclareType>(nullptr)
+          OwnType = TWeakPtr<DeclareType>(nullptr)
+          Members = vector<DeclareMember>
+          {
+            //0
+            DeclareMember
+            {
+              Name = string("parr")
+              Type = TWeakPtr<DeclareType>(Def$$<vector<t_publisher>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //1
+            DeclareMember
+            {
+              Name = string("sarr")
+              Type = TWeakPtr<DeclareType>(Def$$<vector<t_subscriber>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+          }
+        }
+      }
+      ,
+      //3
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeVector
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<vector<t_publisher>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_publisher>::GetRTTI())
+        }
+      }
+      ,
+      //4
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeStruct
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<t_publisher>::GetRTTI())
+          }
+          Name = string("t_publisher")
+          SubType = TWeakPtr<DeclareType>(nullptr)
+          OwnType = TWeakPtr<DeclareType>(nullptr)
+          Members = vector<DeclareMember>
+          {
+            //0
+            DeclareMember
+            {
+              Name = string("Self")
+              Type = TWeakPtr<DeclareType>(Def$$<TSelfPtr<t_publisher>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //1
+            DeclareMember
+            {
+              Name = string("arr")
+              Type = TWeakPtr<DeclareType>(Def$$<vector<TWeakPtr<t_subscriber>>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //2
+            DeclareMember
+            {
+              Name = string("name")
+              Type = TWeakPtr<DeclareType>(Def$$<string>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //3
+            DeclareMember
+            {
+              Name = string("payload")
+              Type = TWeakPtr<DeclareType>(Def$$<string>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //4
+            DeclareMember
+            {
+              Name = string("channel")
+              Type = TWeakPtr<DeclareType>(Def$$<TWeakPtr<t_channel>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //5
+            DeclareMember
+            {
+              Name = string("script")
+              Type = TWeakPtr<DeclareType>(Def$$<string>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+          }
+        }
+      }
+      ,
+      //5
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeSelfPtr
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<TSelfPtr<t_publisher>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_publisher>::GetRTTI())
+        }
+      }
+      ,
+      //6
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeVector
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<vector<TWeakPtr<t_subscriber>>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<TWeakPtr<t_subscriber>>::GetRTTI())
+        }
+      }
+      ,
+      //7
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeWeakPtr
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<TWeakPtr<t_subscriber>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_subscriber>::GetRTTI())
+        }
+      }
+      ,
+      //8
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeStruct
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<t_subscriber>::GetRTTI())
+          }
+          Name = string("t_subscriber")
+          SubType = TWeakPtr<DeclareType>(nullptr)
+          OwnType = TWeakPtr<DeclareType>(nullptr)
+          Members = vector<DeclareMember>
+          {
+            //0
+            DeclareMember
+            {
+              Name = string("Self")
+              Type = TWeakPtr<DeclareType>(Def$$<TSelfPtr<t_subscriber>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //1
+            DeclareMember
+            {
+              Name = string("publisher")
+              Type = TWeakPtr<DeclareType>(Def$$<TWeakPtr<t_publisher>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //2
+            DeclareMember
+            {
+              Name = string("content")
+              Type = TWeakPtr<DeclareType>(Def$$<vector<string>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //3
+            DeclareMember
+            {
+              Name = string("priority")
+              Type = TWeakPtr<DeclareType>(Def$$<int>::GetRTTI())
+              Mode = string("SET")
+              Value = string("0")
+            }
+          }
+        }
+      }
+      ,
+      //9
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeSelfPtr
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<TSelfPtr<t_subscriber>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_subscriber>::GetRTTI())
+        }
+      }
+      ,
+      //10
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeWeakPtr
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<TWeakPtr<t_publisher>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_publisher>::GetRTTI())
+        }
+      }
+      ,
+      //11
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeVector
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<vector<string>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<string>::GetRTTI())
+        }
+      }
+      ,
+      //12
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeWeakPtr
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<TWeakPtr<t_channel>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_channel>::GetRTTI())
+        }
+      }
+      ,
+      //13
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeStruct
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<t_channel>::GetRTTI())
+          }
+          Name = string("t_channel")
+          SubType = TWeakPtr<DeclareType>(nullptr)
+          OwnType = TWeakPtr<DeclareType>(nullptr)
+          Members = vector<DeclareMember>
+          {
+            //0
+            DeclareMember
+            {
+              Name = string("Self")
+              Type = TWeakPtr<DeclareType>(Def$$<TSelfPtr<t_channel>>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+            ,
+            //1
+            DeclareMember
+            {
+              Name = string("tag")
+              Type = TWeakPtr<DeclareType>(Def$$<string>::GetRTTI())
+              Mode = string("DEF")
+              Value = string("$")
+            }
+          }
+        }
+      }
+      ,
+      //14
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeSelfPtr
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<TSelfPtr<t_channel>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_channel>::GetRTTI())
+        }
+      }
+      ,
+      //15
+      TAutoPtr<DeclareType>
+      {
+        DeclareTypeVector
+        {
+          DeclareType
+          {
+            Self = TSelfPtr<DeclareType>(Def$$<vector<t_subscriber>>::GetRTTI())
+          }
+          ElementType = TWeakPtr<DeclareType>(Def$$<t_subscriber>::GetRTTI())
+        }
+      }
+    }
+  }
+  ImplPtrs = vector<EnvDefTypePtr>
+  {
+    //0
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<string>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<string>::GetRTTI())
+      }
+    }
+    ,
+    //1
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<int>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<int>::GetRTTI())
+      }
+    }
+    ,
+    //2
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<t_world>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<t_world>::GetRTTI())
+      }
+    }
+    ,
+    //3
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<vector<t_publisher>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<vector<t_publisher>>::GetRTTI())
+      }
+    }
+    ,
+    //4
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<t_publisher>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<t_publisher>::GetRTTI())
+      }
+    }
+    ,
+    //5
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<TSelfPtr<t_publisher>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<TSelfPtr<t_publisher>>::GetRTTI())
+      }
+    }
+    ,
+    //6
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<vector<TWeakPtr<t_subscriber>>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<vector<TWeakPtr<t_subscriber>>>::GetRTTI())
+      }
+    }
+    ,
+    //7
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<TWeakPtr<t_subscriber>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<TWeakPtr<t_subscriber>>::GetRTTI())
+      }
+    }
+    ,
+    //8
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<t_subscriber>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<t_subscriber>::GetRTTI())
+      }
+    }
+    ,
+    //9
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<TSelfPtr<t_subscriber>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<TSelfPtr<t_subscriber>>::GetRTTI())
+      }
+    }
+    ,
+    //10
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<TWeakPtr<t_publisher>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<TWeakPtr<t_publisher>>::GetRTTI())
+      }
+    }
+    ,
+    //11
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<vector<string>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<vector<string>>::GetRTTI())
+      }
+    }
+    ,
+    //12
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<TWeakPtr<t_channel>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<TWeakPtr<t_channel>>::GetRTTI())
+      }
+    }
+    ,
+    //13
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<t_channel>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<t_channel>::GetRTTI())
+      }
+    }
+    ,
+    //14
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<TSelfPtr<t_channel>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<TSelfPtr<t_channel>>::GetRTTI())
+      }
+    }
+    ,
+    //15
+    EnvDefTypePtr
+    {
+      Decl = TWeakPtr<DeclareType>(Def$$<vector<t_subscriber>>::GetRTTI())
+      Impl = EnvDefEntryPoint
+      {
+        Self = TSelfPtr<EnvDefEntryPoint>(Sys$$<vector<t_subscriber>>::GetRTTI())
+      }
+    }
+  }
+}
+int(43)
+THardPtr<TType>(Sys$$<t_world>::GetRTTI())
+int(48)
+t_world
+{
+  parr = vector<t_publisher>
+  {
+    //0
+    t_publisher
+    {
+      Self = TSelfPtr<t_publisher>(userpoint[0])
+      arr = vector<TWeakPtr<t_subscriber>>
+      {
+        //0
+        TWeakPtr<t_subscriber>(userpoint[2])
+        ,
+        //1
+        TWeakPtr<t_subscriber>(userpoint[3])
+      }
+      name = string("news")
+      payload = string("")
+      channel = TWeakPtr<t_channel>(nullptr)
+      script = string("print(\'news\')")
+    }
+    ,
+    //1
+    t_publisher
+    {
+      Self = TSelfPtr<t_publisher>(userpoint[1])
+      arr = vector<TWeakPtr<t_subscriber>>
+      {
+        //0
+        TWeakPtr<t_subscriber>(userpoint[4])
+      }
+      name = string("alerts")
+      payload = string("")
+      channel = TWeakPtr<t_channel>(nullptr)
+      script = string("print(\'alert\')")
+    }
+  }
+  sarr = vector<t_subscriber>
+  {
+    //0
+    t_subscriber
+    {
+      Self = TSelfPtr<t_subscriber>(userpoint[2])
+      publisher = TWeakPtr<t_publisher>(userpoint[0])
+      content = vector<string>
+      {
+        //0
+        string("a")
+        ,
+        //1
+        string("b")
+      }
+      priority = int(0)
+    }
+    ,
+    //1
+    t_subscriber
+    {
+      Self = TSelfPtr<t_subscriber>(userpoint[3])
+      publisher = TWeakPtr<t_publisher>(userpoint[0])
+      content = vector<string>
+      {
+        //0
+        string("c")
+      }
+      priority = int(0)
+    }
+    ,
+    //2
+    t_subscriber
+    {
+      Self = TSelfPtr<t_subscriber>(userpoint[4])
+      publisher = TWeakPtr<t_publisher>(userpoint[1])
+      content = vector<string>
+      {
+        //0
+        string("x")
+      }
+      priority = int(0)
+    }
+  }
+}

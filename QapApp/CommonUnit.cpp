@@ -237,6 +237,194 @@ void main_2025(IEnvRTTI&Env){
   int gg=1;
 }
 
+class t_channel{
+public:
+#define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_channel)
+#define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+ADDBEG()\
+ADDVAR(TSelfPtr<SelfClass>,Self,DEF,$,$)\
+ADDVAR(string,tag,DEF,$,$)\
+ADDEND()
+//=====+>>>>>t_channel
+#include "QapGenStruct.inl"
+//<<<<<+=====t_channel
+public:
+};
+class t_subscriber;
+class t_publisher{
+public:
+#define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_publisher)
+#define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+ADDBEG()\
+ADDVAR(TSelfPtr<SelfClass>,Self,DEF,$,$)\
+ADDVAR(vector<TWeakPtr<t_subscriber>>,arr,DEF,$,$)\
+ADDVAR(string,name,DEF,$,$)\
+ADDVAR(string,payload,DEF,$,$)\
+ADDVAR(TWeakPtr<t_channel>,channel,DEF,$,$)\
+ADDVAR(string,script,DEF,$,$)\
+ADDEND()
+//=====+>>>>>t_publisher
+#include "QapGenStruct.inl"
+//<<<<<+=====t_publisher
+public:
+};
+class t_subscriber{
+public:
+#define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_subscriber)
+#define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+ADDBEG()\
+ADDVAR(TSelfPtr<SelfClass>,Self,DEF,$,$)\
+ADDVAR(TWeakPtr<t_publisher>,publisher,DEF,$,$)\
+ADDVAR(vector<string>,content,DEF,$,$)\
+ADDVAR(int,priority,SET,0,$)\
+ADDEND()
+//=====+>>>>>t_subscriber
+#include "QapGenStruct.inl"
+//<<<<<+=====t_subscriber
+public:
+};
+class t_world{
+public:
+#define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_world)
+#define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+ADDBEG()\
+ADDVAR(vector<t_publisher>,parr,DEF,$,$)\
+ADDVAR(vector<t_subscriber>,sarr,DEF,$,$)\
+ADDEND()
+//=====+>>>>>t_world
+#include "QapGenStruct.inl"
+//<<<<<+=====t_world
+public:
+};
+namespace t_before{
+  class t_subscriber;
+  class t_publisher{
+  public:
+  #define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_publisher)
+  #define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+  ADDBEG()\
+  ADDVAR(TSelfPtr<SelfClass>,Self,DEF,$,$)\
+  ADDVAR(vector<TWeakPtr<t_subscriber>>,arr,DEF,$,$)\
+  ADDVAR(string,name,DEF,$,$)\
+  ADDVAR(string,content,DEF,$,$)\
+  ADDVAR(string,script,DEF,$,$)\
+  ADDEND()
+  //=====+>>>>>t_publisher
+  #include "QapGenStruct.inl"
+  //<<<<<+=====t_publisher
+  public:
+  };
+  class t_subscriber{
+  public:
+  #define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_subscriber)
+  #define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+  ADDBEG()\
+  ADDVAR(TSelfPtr<SelfClass>,Self,DEF,$,$)\
+  ADDVAR(TWeakPtr<t_publisher>,publisher,DEF,$,$)\
+  ADDVAR(vector<string>,content,DEF,$,$)\
+  ADDEND()
+  //=====+>>>>>t_subscriber
+  #include "QapGenStruct.inl"
+  //<<<<<+=====t_subscriber
+  public:
+  };
+  class t_world{
+  public:
+  #define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_world)
+  #define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+  ADDBEG()\
+  ADDVAR(vector<t_publisher>,parr,DEF,$,$)\
+  ADDVAR(vector<t_subscriber>,sarr,DEF,$,$)\
+  ADDEND()
+  //=====+>>>>>t_world
+  #include "QapGenStruct.inl"
+  //<<<<<+=====t_world
+  public:
+  };
+  inline t_publisher&InitPublisher_V1(t_world&world,const string&name,const string&content,const string&script)
+  {
+    auto&p=qap_add_back(world.parr);
+    p.name=name;
+    p.content=content;
+    p.script=script;
+    return p;
+  }
+  inline t_subscriber&InitSubscriber_V1(t_world&world,t_publisher&pub,const vector<string>&content)
+  {
+    auto&s=qap_add_back(world.sarr);
+    s.publisher=&pub;
+    s.content=content;
+    pub.arr.push_back(&s);
+    return s;
+  }
+  inline t_world InitTestWorld_V1()
+  {
+    t_world world;
+    world.parr.reserve(1024);
+    auto&p1=InitPublisher_V1(world,"news","hello","print('news')");
+    auto&p2=InitPublisher_V1(world,"alerts","system","print('alert')");
+    InitSubscriber_V1(world,p1,{"a","b"});
+    InitSubscriber_V1(world,p1,{"c"});
+    InitSubscriber_V1(world,p2,{"x"});
+    return world;
+  }
+};
+
+inline void TestMigratedWorld_V2(t_world&world){
+  QapAssert(world.parr.size()==2);
+  QapAssert(world.sarr.size()==3);
+  int news_cnt=0;
+  int alert_cnt=0;
+  for(auto&p:world.parr){
+    QapAssert(!p.payload.size());
+    QapAssert(p.script.size());
+    if(p.name=="news"){
+      QapAssert(p.script=="print('news')");
+      news_cnt++;
+    }
+    if(p.name=="alerts"){
+      QapAssert(p.script=="print('alert')");
+      alert_cnt++;
+    }
+    for(auto&s:p.arr){
+      QapAssert(s);
+      QapAssert(s->publisher.get()==&p);
+    }
+  }
+  QapAssert(news_cnt==1);
+  QapAssert(alert_cnt==1);
+  for(auto&s:world.sarr){
+    QapAssert(s.publisher);
+    QapAssert(s.priority==0);
+  }
+}
+
+void main_2025_3(IEnvRTTI&Env){
+  {
+    TStdAllocator MA;
+    TEnvRTTI Env2;
+    Env2.Arr.reserve(1024);
+    Env2.Alloc=&MA;
+    Env2.OwnerEnv=&Env2;
+
+    t_before::t_world var=t_before::InitTestWorld_V1();
+    TQapFileStream fsproto("out3bef.qap.proto",false);
+    QapUberFullSaver(Env2,QapRawUberObject(var),UberSaveDeviceProto(fsproto));
+    TQapFileStream fs("out3bef.qap",false);
+    QapUberFullSaver(Env2,QapRawUberObject(var),UberSaveDeviceBin(fs));
+  }
+  t_world var;
+  if(!QapPublicUberFullLoaderBinLastHope(Env,QapRawUberObject(var),"out3bef.qap")){
+    int gg=1;
+  }
+  TestMigratedWorld_V2(var);
+  TQapFileStream fsproto("out3aft.qap.proto",false);
+  QapUberFullSaver(Env,QapRawUberObject(var),UberSaveDeviceProto(fsproto));
+  TQapFileStream fs("out3aft.qap",false);
+  QapUberFullSaver(Env,QapRawUberObject(var),UberSaveDeviceBin(fs));
+  int gg=1;
+}
+
 void main_2025_2(IEnvRTTI&Env){
   t_some_class2 var;
   Sys$$<t_node2>::GetRTTI(Env);Sys$$<t_leaf>::GetRTTI(Env);
@@ -278,6 +466,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     main_2025(Env);
     main_2025_1(Env);
     main_2025_2(Env);
+    main_2025_3(Env);
     if(0)Env.OwnerEnv=nullptr;
   }
   return 0;
