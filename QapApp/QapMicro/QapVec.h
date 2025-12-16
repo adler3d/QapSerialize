@@ -73,6 +73,19 @@ public:
     operator b2Vec2()const{return b2Vec2(x,y);}
     vec2d(const b2Vec2& v):x(v.x),y(v.y){}
   #endif
+public:
+  real dist_to(const vec2d&p)const{return (p-*this).Mag();}
+  real sqr_dist_to(const vec2d&p)const{return (p-*this).SqrMag();}
+  bool dist_to_point_less_that_r(const vec2d&p,real r)const{return (p-*this).SqrMag()<r*r;}
+  static vec2d min(const vec2d&a,const vec2d&b){
+    return vec2d(std::min(a.x,b.x),std::min(a.y,b.y));
+  }
+  static vec2d max(const vec2d&a,const vec2d&b){
+    return vec2d(std::max(a.x,b.x),std::max(a.y,b.y));
+  }
+  static void comin(vec2d&a,const vec2d&b){a=min(a,b);}
+  static void comax(vec2d&a,const vec2d&b){a=max(a,b);}
+  static vec2d sign(const vec2d&p){return vec2d(Sign(p.x),Sign(p.y));}
 };
 //-------------------------------------------//
 class QapColor{
@@ -261,7 +274,13 @@ public:
 public:
   friend vec2f operator*(float u,const vec2f&v){return vec2f(u*v.x,u*v.y);}
   operator vec2d()const{return vec2d(x,y);}
+  friend void operator*=(vec2f&ref,float r){ref.x*=r;ref.y*=r;}
+  friend bool operator==(const vec2f&u,const vec2f&v){return (u.x==v.x)&&(u.y==v.y);}
+  friend bool operator!=(const vec2f&u,const vec2f&v){return (u.x!=v.x)||(u.y!=v.y);}
+  vec2f operator-()const{return vec2f(-x,-y);}
 };
+inline static real dot(const vec2f&a,const vec2f&b){return a.x*b.x+a.y*b.y;}
+inline static real cross(const vec2f&a,const vec2f&b){return a.x*b.y-a.y*b.x;}
 //-------------------------------------------//
 class vec2i{
 public:
@@ -350,51 +369,23 @@ public:
 
 class QapMat22{
 public:
-	vec2f col1;
-  vec2f col2;
-public:
-	QapMat22():col1(1,0),col2(0,1){}
-	QapMat22(const vec2f&c1,const vec2f&c2)
-	{
-		col1=c1;
-		col2=c2;
-	}
-	QapMat22(float a11,float a12,float a21,float a22)
-	{
-		col1.x=a11;col1.y=a21;
-		col2.x=a12;col2.y=a22;
-	}
-	explicit QapMat22(float ang)
-	{
-		float c=cosf(ang);float s=sinf(ang);
-		col1.x=c; col2.x=-s;
-		col1.y=s; col2.y=+c;
-	}
-	void set(const vec2f&c1,const vec2f&c2)
-	{
-		col1=c1;
-		col2=c2;
-	}
-	void set(float ang)
-	{
-		float c=cosf(ang);float s=sinf(ang);
-		col1.x=c; col2.x=-s;
-		col1.y=s; col2.y=+c;
-	}
-	void set_ident()
-	{
-		col1.x = 1.0f; col2.x = 0.0f;
-		col1.y = 0.0f; col2.y = 1.0f;
-	}
-	void set_zero()
-	{
-		col1.x = 0.0f; col2.x = 0.0f;
-		col1.y = 0.0f; col2.y = 0.0f;
-	}
-	float GetAngle()const
-	{
-		return atan2(col1.y, col1.x);
-	}
+  vec2f col1,col2;
+  QapMat22():col1(1,0),col2(0,1){}
+  QapMat22(const vec2f&c1,const vec2f&c2):col1(c1),col2(c2){}
+  QapMat22(float a11,float a12,float a21,float a22){col1.x=a11;col1.y=a21;col2.x=a12;col2.y=a22;}
+  explicit QapMat22(float ang){
+    float c=cosf(ang),s=sinf(ang);
+    col1.x=c; col2.x=-s; col1.y=s; col2.y=+c;
+  }
+  void set(const vec2f&c1,const vec2f&c2){col1=c1;col2=c2;}
+  void set(float ang){
+    float c=cosf(ang),s=sinf(ang);
+    col1.x=c; col2.x=-s; col1.y=s; col2.y=+c;
+  }
+  void set_ident(){col1.x=1.0f;col2.x=0.0f;col1.y=0.0f;col2.y=1.0f;}
+  void set_zero(){col1.x=0.0f;col2.x=0.0f;col1.y=0.0f;col2.y=0.0f;}
+  float GetAngle()const{return atan2(col1.y,col1.x);}
+  void mul(real r){col1*=r;col2*=r;}
 };
 
 class transform2f{

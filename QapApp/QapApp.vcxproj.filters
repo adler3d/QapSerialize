@@ -16,10 +16,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonUnit.cpp">
-      <Filter>StdAfx</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="last_hope_loader.cpp">
-      <Filter>StdAfx</Filter>
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="test20251216.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

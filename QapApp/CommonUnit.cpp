@@ -453,6 +453,8 @@ int main()
 #include "main2.inl"
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow)
 {
+  void win_main_init(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow);
+  win_main_init(hInstance,hPrevInstance,lpCmdLine,nCmdShow);
   auto&comp_unit_man=TCompileUnitMan::get_man();
   //string unit_name=comp_unit_man.arr[0]->get_filename();
   //static GlobalEnv gEnv(hInstance,hPrevInstance,lpCmdLine,nCmdShow);
