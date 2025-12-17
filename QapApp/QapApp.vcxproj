@@ -374,7 +374,7 @@
       <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</FunctionLevelLinking>
     </ClCompile>
     <ClCompile Include="last_hope_loader.cpp" />
-    <ClCompile Include="test20251217.cpp" />
+    <ClCompile Include="node_graph_editor_with_nice_redo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GUI_Panel.inl" />

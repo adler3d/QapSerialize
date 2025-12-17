@@ -15,6 +15,7 @@ bool TDynStructFactory_set_not_sys_field_from_string(TType*p,const string&source
 #include <iostream>
 //#include "last_hope_loader.cpp"
 bool QapPublicUberFullLoaderBinLastHope(IEnvRTTI&Env,IQapRawObject&&Object,const string&filename);
+namespace{
 class t_node{
 public:
 #define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_node)
@@ -443,7 +444,7 @@ void main_2025_2(IEnvRTTI&Env){
   QapUberFullSaver(Env,QapRawUberObject(var),UberSaveDeviceBin(fs));
   int gg=1;
 }
-
+}
 int main()
 {
   return WinMain(GetModuleHandle(NULL), NULL, GetCommandLineA(), SW_SHOWNORMAL);
