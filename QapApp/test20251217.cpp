@@ -8,9 +8,11 @@ double Dist2Line(const vec2d&point,const vec2d&a,const vec2d&b){
   return fabs(p.y);
 }
 
+bool QapPublicUberFullLoaderBinLastHopeMem(IEnvRTTI&Env,IQapRawObject&&Object,const string&Inp);
 bool QapPublicUberFullLoaderBinLastHope(IEnvRTTI&Env,IQapRawObject&&Object,const string&filename);
 bool QapPublicUberFullSaverProto(IEnvRTTI&Env,IQapRawObject&&Object,const string&filename);
 bool QapPublicUberFullSaverBin(IEnvRTTI&Env,IQapRawObject&&Object,const string&filename);
+bool QapPublicUberFullCloneBinMem(IEnvRTTI&Env,IQapRawObject&&Dest,IQapRawObject&&Source);
 
 class t_material{
 public:
@@ -59,15 +61,29 @@ ADDEND()
 //<<<<<+=====t_line
 public:
 };
-
+class t_layer{
+public:
+#define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_layer)
+#define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
+ADDBEG()\
+ADDVAR(string,name,DEF,$,$)\
+ADDVAR(vector<t_line>,larr,DEF,$,$)\
+ADDVAR(vector<t_material>,marr,DEF,$,$)\
+ADDEND()
+//=====+>>>>>t_layer
+#include "QapGenStruct.inl"
+//<<<<<+=====t_layer
+public:
+};
 class t_world{
 public:
 #define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_world)
 #define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
 ADDBEG()\
 ADDVAR(int,tick,SET,0,$)\
-ADDVAR(vector<t_line>,larr,DEF,$,$)\
-ADDVAR(vector<t_material>,marr,DEF,$,$)\
+ADDVAR(vector<t_layer>,layers,DEF,$,$)\
+ADDVAR(int,layer_id,SET,-1,$)\
+ADDVAR(t_layer,cur,DEF,$,$)\
 ADDVAR(bool,show_mat,SET,false,$)\
 ADDEND()
 //=====+>>>>>t_world
@@ -90,15 +106,15 @@ public:
 public:
   void UpdateMatPos(){
     int i=0;
-    for(auto&ex:w.marr){
-      ex.pos=vec2d((i-int(w.marr.size())/2)*mat_size,-220);
+    for(auto&ex:w.cur.marr){
+      ex.pos=vec2d((i-int(w.cur.marr.size())/2)*mat_size,-220);
       i++;
     }
   }
   void DoInit(){
-    qap_add_back(w.marr).color=0xffff0000;
-    qap_add_back(w.marr).color=0xff00ff00;
-    qap_add_back(w.marr).color=0xff0000ff;
+    qap_add_back(w.cur.marr).color=0xffff0000;
+    qap_add_back(w.cur.marr).color=0xff00ff00;
+    qap_add_back(w.cur.marr).color=0xff0000ff;
     UpdateMatPos();
   }
   void DoMigrate(){
@@ -109,11 +125,29 @@ public:
   }
   void DoUpdate(){
     if(kb.OnDown(VK_F1)){
-      qap_add_back(w.marr).color=0xffffff00;
-      qap_add_back(w.marr).color=0xffff8000;
-      qap_add_back(w.marr).color=0xff0080ff;
+      qap_add_back(w.cur.marr).color=0xffffff00;
+      qap_add_back(w.cur.marr).color=0xffff8000;
+      qap_add_back(w.cur.marr).color=0xff0080ff;
       UpdateMatPos();
     }
+    if(kb.OnDown(VK_F2)){
+      auto&layer=qap_add_back(w.layers);
+      layer=std::move(w.cur);
+    }
+    if(kb.OnDown(VK_F5)&&qap_check_id(w.layers,w.layer_id)){
+      auto&layer=w.layers[w.layer_id];
+      auto&tmp=w.cur;
+      tmp={};
+      QapPublicUberFullCloneBinMem(*pEnv,QapRawUberObject(tmp),QapRawUberObject(layer));
+    }
+    if(kb.OnDown(VK_F4)&&qap_check_id(w.layers,w.layer_id)){
+      auto&layer=w.layers[w.layer_id];
+      auto&tmp=w.cur;
+      layer={};
+      QapPublicUberFullCloneBinMem(*pEnv,QapRawUberObject(layer),QapRawUberObject(tmp));
+    }
+    if(kb.OnDown(VK_UP))w.layer_id++;
+    if(kb.OnDown(VK_DOWN))w.layer_id--;
     if(kb.OnDown(mbLeft)){
       nl.a.pos=mpos;
     }
@@ -121,36 +155,36 @@ public:
       nl.b.pos=mpos;
     }
     if(kb.OnUp(mbLeft)){
-      qap_add_back(w.larr)=std::move((nl));
+      qap_add_back(w.cur.larr)=std::move((nl));
     }
     if(kb.OnDown(VK_ADD)){
-      for(auto&ex:w.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
+      for(auto&ex:w.cur.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
         ex.weight=Clamp(ex.weight+0.1,0.0,1.0);
       }
     }
     if(kb.OnDown(VK_SUBTRACT)){
-      for(auto&ex:w.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
+      for(auto&ex:w.cur.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
         ex.weight=Clamp(ex.weight-0.1,0.0,1.0);
       }
     }
     if(kb.OnDown(VK_NEXT)){
-      for(auto&ex:w.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
+      for(auto&ex:w.cur.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
         ex.line_size=Clamp(ex.line_size+100,1.0,16.0);
       }
     }
     if(kb.OnDown(VK_PRIOR)){
-      for(auto&ex:w.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
+      for(auto&ex:w.cur.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
         ex.line_size=Clamp(ex.line_size-0.1,1.0,16.0);
       }
     }
     if(kb.News){
-      for(auto&ex:w.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
+      for(auto&ex:w.cur.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4){
         string nc=" ";nc[0]=kb.LastChar;
         ex.label=nc;
       }
     }
     if(kb.OnDown(VK_DELETE)){
-      for(auto&ex:w.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4)ex.enabled=false;
+      for(auto&ex:w.cur.larr)if(Dist2Line(mpos,ex.a.pos,ex.b.pos)<4)ex.enabled=false;
     }
     if(kb.OnDown(VK_RCONTROL)){
       if(auto*m=FindMaterialAt(mpos)){
@@ -161,8 +195,8 @@ public:
     if(kb.Down[VK_RCONTROL]&&drag_mat){
       sep=FindSEP(mpos);
     }
-    if(kb.OnUp(VK_RCONTROL)&&drag_mat&&qap_check_id(w.larr,sep.id)){
-      auto&l=w.larr[sep.id];
+    if(kb.OnUp(VK_RCONTROL)&&drag_mat&&qap_check_id(w.cur.larr,sep.id)){
+      auto&l=w.cur.larr[sep.id];
       auto&ep=sep.a?l.a:l.b;
       ep.mat=drag_mat.get();
     }
@@ -175,13 +209,13 @@ public:
     if(kb.OnDown(mbMiddle)){
       sep=FindSEP(mpos);
     }
-    if(kb.Down[mbMiddle]&&qap_check_id(w.larr,sep.id)){
-      auto&l=w.larr[sep.id];
+    if(kb.Down[mbMiddle]&&qap_check_id(w.cur.larr,sep.id)){
+      auto&l=w.cur.larr[sep.id];
       auto&ep=sep.a?l.a:l.b;
       ep.r=(ep.pos-mpos).Mag();
     }
-    if(kb.Down[mbRight]&&!drag_mat&&qap_check_id(w.larr,sep.id)){
-      auto&l=w.larr[sep.id];
+    if(kb.Down[mbRight]&&!drag_mat&&qap_check_id(w.cur.larr,sep.id)){
+      auto&l=w.cur.larr[sep.id];
       auto&ep=sep.a?l.a:l.b;
       ep.pos=mpos;
     }
@@ -223,10 +257,6 @@ public:
     qDev.color=QapColor::Mix(0xff000000,mat,ref.weight);
     qDev.DrawLine(ref.a.pos,ref.b.pos,ref.line_size);
     auto p=LineCenter(ref);
-    //qDev.color=0xff000000;
-    //qap_text::draw(qDev,p+vec2d(+1,-1),ref.label);
-    //qDev.color=0xffffffff;
-    //qap_text::draw(qDev,p,ref.label);
     if(ref.mat&&w.show_mat){
       qDev.color=ref.mat->color;
       qDev.DrawLine(ref.mat->pos,p,4);
@@ -244,14 +274,17 @@ public:
     qDev.color=ref.color;
     qDev.DrawQuad(ref.pos,vec2d(1,1)*mat_size);
   }
+  void Draw(const t_layer&ref){
+    Draw(ref.larr);
+    Draw(ref.marr);
+    for(auto&ex:ref.larr)DrawText(ex);
+  }
   template<class TYPE>
   void Draw(const vector<TYPE>&arr){for(auto&ex:arr)Draw(ex);}
   void DoDraw()override{
     QapDev::BatchScope Scope(qDev);
     qDev.color=0xff101010;
-    Draw(w.larr);
-    Draw(w.marr);
-    for(auto&ex:w.larr)DrawText(ex);
+    Draw(w.cur);
     if(kb.Down[mbLeft])Draw(nl);
     if(drag_mat){
       vec2d a=drag_mat->pos;
@@ -260,20 +293,26 @@ public:
       qDev.color=0x80ffffff;
       qDev.DrawLine(a,b,4);
     }
+    string s="layer_id = "+IToS(w.layer_id);
+    auto p=vec2d(-512,+512);
+    qDev.color=0xff000000;
+    qap_text::draw(qDev,p+vec2d(+1,-1),s);
+    qDev.color=0xffffffff;
+    qap_text::draw(qDev,p,s);
   }
   t_material*FindMaterialAt(const vec2d&p){
-    for(auto&ex:w.marr)
+    for(auto&ex:w.cur.marr)
       if((ex.pos-p).SqrMag()<mat_size*mat_size*0.25)return &ex;
     return nullptr;
   }
   t_line*FindLineAt(const vec2d&p){
-    for(auto&ex:w.larr)
+    for(auto&ex:w.cur.larr)
       if(ex.enabled&&Dist2Line(p,ex.a.pos,ex.b.pos)<4)return &ex;
     return nullptr;
   }
   t_sel_endpoint FindSEP(const vec2d&p){
     int i=0;
-    for(auto&ex:w.larr){
+    for(auto&ex:w.cur.larr){
       if(ex.enabled){
         if(ex.a.pos.dist_to_point_less_that_r(p,max(4.0,ex.a.r)))return {true,i};
         if(ex.b.pos.dist_to_point_less_that_r(p,max(4.0,ex.b.r)))return {false,i};
@@ -286,7 +325,7 @@ public:
     return 0.5*(ex.a.pos+ex.b.pos);
   }
 };
-void main_2025_12_16(IEnvRTTI&Env){
+void main_2025_12_17(IEnvRTTI&Env){
   TGame builder;
   builder.SleepMs=0;
   builder.pEnv=&Env;
@@ -314,7 +353,7 @@ namespace
     }
     void Run(IEnvRTTI&Env)override
     {
-      main_2025_12_16(Env);
+      main_2025_12_17(Env);
       int gg=1;
     }
   };
