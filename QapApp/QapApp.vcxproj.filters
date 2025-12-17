@@ -21,7 +21,7 @@
     <ClCompile Include="last_hope_loader.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="test20251216.cpp">
+    <ClCompile Include="test20251217.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

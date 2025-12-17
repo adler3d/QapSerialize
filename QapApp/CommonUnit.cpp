@@ -236,7 +236,7 @@ void main_2025(IEnvRTTI&Env){
   QapUberFullSaver(Env,QapRawUberObject(var),UberSaveDeviceBin(fs));
   int gg=1;
 }
-
+namespace t_channel_test{
 class t_channel{
 public:
 #define DEF_PRO_STRUCT_INFO(NAME,PARENT,OWNER)NAME(t_channel)
@@ -398,7 +398,6 @@ inline void TestMigratedWorld_V2(t_world&world){
     QapAssert(s.priority==0);
   }
 }
-
 void main_2025_3(IEnvRTTI&Env){
   {
     TStdAllocator MA;
@@ -424,7 +423,7 @@ void main_2025_3(IEnvRTTI&Env){
   QapUberFullSaver(Env,QapRawUberObject(var),UberSaveDeviceBin(fs));
   int gg=1;
 }
-
+}
 void main_2025_2(IEnvRTTI&Env){
   t_some_class2 var;
   Sys$$<t_node2>::GetRTTI(Env);Sys$$<t_leaf>::GetRTTI(Env);
@@ -468,7 +467,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     main_2025(Env);
     main_2025_1(Env);
     main_2025_2(Env);
-    main_2025_3(Env);
+    t_channel_test::main_2025_3(Env);
     if(0)Env.OwnerEnv=nullptr;
   }
   return 0;

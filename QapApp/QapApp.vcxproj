@@ -374,7 +374,7 @@
       <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</FunctionLevelLinking>
     </ClCompile>
     <ClCompile Include="last_hope_loader.cpp" />
-    <ClCompile Include="test20251216.cpp" />
+    <ClCompile Include="test20251217.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GUI_Panel.inl" />
