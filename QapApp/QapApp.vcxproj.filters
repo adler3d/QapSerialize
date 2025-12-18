@@ -21,7 +21,7 @@
     <ClCompile Include="last_hope_loader.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="node_graph_editor_with_nice_redo.cpp">
+    <ClCompile Include="node_graph_editor.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
