@@ -243,7 +243,7 @@ public:
     ZeroMemory(&inout,sizeof(inout));
     return inout;
   }
-  D3DPRESENT_PARAMETERS&SetToDef(HWND hWnd,bool VSync=true)
+  D3DPRESENT_PARAMETERS&SetToDef(HWND hWnd,bool VSync=true,bool AA=false)
   {
     Zero(pp);
     TScreenMode SM=GetScreenMode();
@@ -251,11 +251,13 @@ public:
     pp.BackBufferHeight=SM.H;
     pp.BackBufferFormat=D3DFMT_X8R8G8B8;
     pp.BackBufferCount=1;
-    pp.SwapEffect=D3DSWAPEFFECT_COPY;
+    pp.SwapEffect=AA?D3DSWAPEFFECT_DISCARD:D3DSWAPEFFECT_COPY;
     pp.PresentationInterval=VSync?D3DPRESENT_INTERVAL_ONE:D3DPRESENT_INTERVAL_IMMEDIATE;
     pp.hDeviceWindow=hWnd;
     pp.Windowed=true;
     pp.FullScreen_RefreshRateInHz=pp.Windowed?0:SM.Freq;
+    pp.MultiSampleQuality=0;
+    pp.MultiSampleType=AA?D3DMULTISAMPLE_16_SAMPLES:D3DMULTISAMPLE_NONE;
     return pp;
   }
 };
@@ -3102,12 +3104,12 @@ public:
   }
 public:
 public:
-  void DoNice()
+  void DoNice(bool AA=false)
   {
     auto&builder=*this;
-    builder.init("2014.06.24");
+    builder.init("2014.06.24",AA);
     builder.win.Init();
-    builder.init_d3d();
+    //builder.init_d3d(AA);
     builder.win.WindowMode();
     UpdateWindow(builder.win.Form.WinPair.hWnd);
     builder.loop();
@@ -3160,20 +3162,20 @@ public:
     DoDraw();
   }
 public:
-  void init_d3d()
+  void init_d3d(bool AA)
   {
     HWND hwnd=win.Form.WinPair.hWnd;
     D9.Init();
-    D9Dev.PresParams.SetToDef(hwnd,true);
+    D9Dev.PresParams.SetToDef(hwnd,true,AA);
     D9Dev.Init(hwnd,D9);
   }
-  void init(const string&caption)
+  void init(const string&caption,bool AA)
   {
     win.Caption=caption;
     win.Init();
     win.Visible=false;
     win.WindowMode();
-    init_d3d();
+    init_d3d(AA);
     win.Visible=true;
     win.WindowMode();
     UpdateWindow(win.Form.WinPair.hWnd);
