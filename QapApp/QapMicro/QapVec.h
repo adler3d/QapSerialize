@@ -386,6 +386,15 @@ public:
   void set_zero(){col1.x=0.0f;col2.x=0.0f;col1.y=0.0f;col2.y=0.0f;}
   float GetAngle()const{return atan2(col1.y,col1.x);}
   void mul(real r){col1*=r;col2*=r;}
+  friend QapMat22 operator*(const QapMat22&a,const QapMat22&b) {
+    QapMat22 result;
+    result.col1.x=a.col1.x*b.col1.x+a.col2.x*b.col1.y;
+    result.col1.y=a.col1.y*b.col1.x+a.col2.y*b.col1.y;
+    result.col2.x=a.col1.x*b.col2.x+a.col2.x*b.col2.y;
+    result.col2.y=a.col1.y*b.col2.x+a.col2.y*b.col2.y;
+    return result;
+  }
+  vec2f operator*(const vec2f&v)const{return vec2f(col1.x*v.x+col2.x*v.y,col1.y*v.x+col2.y*v.y);}
 };
 
 class transform2f{
@@ -416,6 +425,23 @@ public:
     float x=(+T.r.col1.x*v.x+T.r.col2.x*v.y)+T.p.x;
 	  float y=(+T.r.col1.y*v.x+T.r.col2.y*v.y)+T.p.y;
 	  return vec2f(x,y);
+  }
+  transform2f inverse() const {
+    transform2f result;
+    result.r.col1.x = r.col1.x;
+    result.r.col1.y = r.col2.x;
+    result.r.col2.x = r.col1.y;
+    result.r.col2.y = r.col2.y;
+    vec2f neg_p = vec2f(-p.x, -p.y);
+    result.p.x = result.r.col1.x * neg_p.x + result.r.col2.x * neg_p.y;
+    result.p.y = result.r.col1.y * neg_p.x + result.r.col2.y * neg_p.y;
+    return result;
+  }
+  static vec2f inverse_transform_point(const transform2f& xf, const vec2f& point) {
+    vec2f diff = point - xf.p;
+    float x = xf.r.col1.x * diff.x + xf.r.col1.y * diff.y;
+    float y = xf.r.col2.x * diff.x + xf.r.col2.y * diff.y;
+    return vec2f(x, y);
   }
 };
 //-------------------------------------------//

@@ -3466,15 +3466,20 @@ class TQapGame:public TD3DGameBoxBuilder{public:QapKeyboard&kb;vec2i&mpos;TQapGa
 
 struct t_offcentric_scope{
   QapDev&qDev;
-  const vec2d&unit_pos;
-  const vec2d&unit_dir;
-  const real scale;
-  t_offcentric_scope(QapDev&qDev,const vec2d&unit_pos,const vec2d&unit_dir,real scale,bool unit_offcentric):
-    qDev(qDev),unit_pos(unit_pos),unit_dir(unit_dir),scale(scale)
+  transform2f prev_xf;
+  bool prev_use_xf;
+  t_offcentric_scope(QapDev&qDev,const vec2d&pos,const vec2d&dir,real scale,bool unit_offcentric):
+    qDev(qDev),prev_xf(qDev.xf),prev_use_xf(qDev.use_xf)
   {
-    qDev.xf=make_xf(qDev.viewport,unit_pos,unit_dir,scale,unit_offcentric);
-    QapAssert(!qDev.use_xf);
+    transform2f new_xf=make_xf(qDev.viewport,pos,dir,scale,unit_offcentric);
+    qDev.xf=prev_use_xf?combine_xf(new_xf,prev_xf):new_xf;
     qDev.use_xf=true;
+  }  
+  static transform2f combine_xf(const transform2f& inner, const transform2f& outer) {
+    transform2f result;
+    result.r=outer.r*inner.r;
+    result.p=outer*inner.p;
+    return result;
   }
   static real get_koef(){return 0.25;}
   static transform2f make_xf(const t_quad&viewport,const vec2d&unit_pos,const vec2d&unit_dir,real scale,bool unit_offcentric)
@@ -3494,13 +3499,129 @@ struct t_offcentric_scope{
     auto off_offset=offcentric?vec2d(0,viewport.size.y*t_offcentric_scope::get_koef()):vec2d(0,0);
     return cam_pos+(s2wpos+off_offset).Rot(cam_dir)*(1.0/scale);
   };
- ~t_offcentric_scope()
-  {
-    qDev.use_xf=false;
-    qDev.xf.set_ident();
+  ~t_offcentric_scope() {
+    qDev.use_xf=prev_use_xf;
+    qDev.xf=prev_xf;
   }
 };
-
+struct t_xf_scope {
+  QapDev& qDev;
+  transform2f prev_xf;
+  bool prev_use_xf;
+  
+  t_xf_scope(QapDev& qDev, const vec2d& pos, const vec2d& dir, real scale):
+    qDev(qDev), prev_xf(qDev.xf), prev_use_xf(qDev.use_xf)
+  {
+    transform2f new_xf = make_xf(pos, dir, scale);
+    
+    if (prev_use_xf) {
+      // Композиция: сначала новая трансформация, потом старая
+      // Чтобы объекты сначала поворачивались, потом применялась старая трансформация
+      qDev.xf = combine_xf(new_xf, prev_xf);
+    } else {
+      qDev.xf = new_xf;
+    }
+    
+    qDev.use_xf = true;
+  }
+  
+  static transform2f combine_xf(const transform2f& inner, const transform2f& outer) {
+    // inner - новая трансформация (объекта)
+    // outer - предыдущая (камеры или родительской трансформации)
+    // Результат: outer(inner(v)) - сначала объект, потом камера
+    
+    transform2f result;
+    result.r = outer.r * inner.r;  // Матричное умножение
+    result.p = outer * inner.p;    // Трансформируем точку через outer
+    return result;
+  }
+  
+  static transform2f make_xf(const vec2d& pos, const vec2d& dir, real scale) {
+    transform2f xf;
+    xf.r.set(dir.GetAng());
+    xf.r.mul(scale);
+    xf.p=vec2f(pos);
+    return xf;
+  }
+  
+  // Преобразование из локальных координат объекта в мировые
+  static vec2d local_to_world(const transform2f& xf, const vec2d& local_point) {
+    return xf * vec2f(local_point);
+  }
+  
+  // Преобразование из мировых координат в локальные координаты объекта
+  static vec2d world_to_local(const transform2f& xf, const vec2d& world_point) {
+    // Обратная трансформация
+    transform2f inv_xf = inverse(xf);
+    return inv_xf * vec2f(world_point);
+  }
+  
+  // Преобразование из экранных координат в локальные координаты объекта
+  static vec2d screen_to_local(QapDev& qDev, const vec2d& screen_pos, 
+                               const vec2d& obj_pos, const vec2d& obj_dir, real obj_scale) {
+    // 1. Сначала преобразуем экранные координаты в мировые
+    vec2d world_point;
+    
+    if (qDev.use_viewport) {
+      vec2f temp = vec2f(screen_pos) - vec2f(qDev.viewport.pos);
+      if (qDev.use_xf) {
+        world_point = inverse_transform_point(qDev.xf, temp);
+      } else {
+        world_point = temp;
+      }
+    } else {
+      if (qDev.use_xf) {
+        world_point = inverse_transform_point(qDev.xf, vec2f(screen_pos));
+      } else {
+        world_point = screen_pos;
+      }
+    }
+    
+    // 2. Теперь преобразуем мировые координаты в локальные координаты объекта
+    transform2f obj_xf = make_xf(obj_pos, obj_dir, obj_scale);
+    return world_to_local(obj_xf, world_point);
+  }
+  
+  // Обратная трансформация
+  static transform2f inverse(const transform2f& xf) {
+    transform2f result;
+    
+    // Обратная матрица вращения + масштаба
+    float det = xf.r.col1.x * xf.r.col2.y - xf.r.col1.y * xf.r.col2.x;
+    
+    if (fabs(det) < 1e-6f) {
+      // Вырожденная матрица
+      result.r.set_ident();
+      result.p = vec2f(-xf.p.x, -xf.p.y);
+      return result;
+    }
+    
+    float inv_det = 1.0f / det;
+    
+    // Обратная матрица 2x2
+    result.r.col1.x =  xf.r.col2.y * inv_det;
+    result.r.col1.y = -xf.r.col1.y * inv_det;
+    result.r.col2.x = -xf.r.col2.x * inv_det;
+    result.r.col2.y =  xf.r.col1.x * inv_det;
+    
+    // Обратный сдвиг
+    vec2f inv_p = vec2f(-xf.p.x, -xf.p.y);
+    result.p.x = result.r.col1.x * inv_p.x + result.r.col2.x * inv_p.y;
+    result.p.y = result.r.col1.y * inv_p.x + result.r.col2.y * inv_p.y;
+    
+    return result;
+  }
+  
+  static vec2f inverse_transform_point(const transform2f& xf, const vec2f& point) {
+    transform2f inv_xf = inverse(xf);
+    return inv_xf * point;
+  }
+  
+  ~t_xf_scope() {
+    qDev.use_xf = prev_use_xf;
+    qDev.xf = prev_xf;
+  }
+};
 template<class MONSTER,class UNIT>
 static const UNIT*get_near_unit(const MONSTER&a,const vector<UNIT>&arr)
 {

@@ -205,7 +205,7 @@ public:
 class TGame:public TQapGameV2{
 public:
   IEnvRTTI*pEnv=nullptr;
-  string fn="save_node_editor.qap";
+  string fn="save_node_editor_full.qap";
   t_world w;
   t_link nl;
   double mat_size=32;
@@ -537,9 +537,19 @@ public:
       w.st=FindTextAt(mpos);
       w.sl=FindLayerAt(mpos);
     }
+    //if(kb.Down(VK_LCONTROL)){
+    //  if(w.st)w.st->pos=-(t_offcentric_scope::screen_to_world(qDev.viewport,mpos,w.st->pos,w.st->dir,1.0,false)-w.st->pos);
+    //  if(w.sl)w.sl->offset=mpos;
+    //}
     if(kb.Down(VK_LCONTROL)){
-      if(w.st)w.st->pos=-(t_offcentric_scope::screen_to_world(qDev.viewport,mpos,w.st->pos,w.st->dir,1.0,false)-w.st->pos);
-      if(w.sl)w.sl->offset=mpos;
+      if(w.st){
+        //t_offcentric_scope scope(qDev,w.st->pos,w.st->dir,1.0,false);
+        w.st->pos=mpos;//TextUtils::move_text_easy(*w.st.get(),qDev,mpos);//CoordSystem::screen_to_world(qDev,mpos);
+      }
+      if(w.sl){
+        //t_offcentric_scope scope(qDev,w.sl->offset,vec2d(1,0),w.sl->scale,false);
+        w.sl->offset=mpos;//CoordSystem::screen_to_world(qDev,mpos);
+      }
     }
   }
   void DoMove()override{
@@ -620,19 +630,64 @@ public:
   void Draw(const t_text&ref){
     if(!ref.enabled)return;
     auto p=ref.pos+vec2d(-12+5,+12+3);
-    t_offcentric_scope scope(qDev,ref.pos,ref.dir/*.UnRot(Vec2dEx(PiD2,1.0))*/,1.0,false);
-    //qDev.color=0xff000000;
-    //qap_text::draw(qDev,vec2d(+1,-1).UnRot(ref.dir),ref.text,ref.font_size);
+    t_xf_scope scope(qDev,ref.pos,ref.dir,1.0);
     qDev.color=0xff000000;
-    //qDev.DrawCircleEx(vec2d(0,0),0,8,24,0);
+    qDev.DrawCircleEx(vec2d(0,0),0,8,24,0);
     qap_text::draw(qDev,vec2d(0,0),ref.text,ref.font_size);
   }
   void Draw(const t_layer_with_offset&ref){
-    t_offcentric_scope scope(qDev,-ref.offset*(1.0/ref.scale),vec2d(1,0),ref.scale,false);
+    //t_offcentric_scope scope(qDev,-ref.offset*(1.0/ref.scale),vec2d(1,0),ref.scale,false);
+    t_xf_scope scope(qDev,ref.offset,vec2d(1,0),ref.scale);
     Draw(ref.L);
     qDev.color=0xff000000;
     qDev.DrawCircleEx(vec2d(0,0),0,8,24,0);
   }
+  class CoordSystem {
+  public:
+    static vec2d screen_to_world(QapDev& qDev, const vec2d& screen_pos) {
+      if (!qDev.use_xf) {
+        return screen_pos - qDev.viewport.pos;
+      }
+      // Обратная трансформация
+      vec2f pos(screen_pos);
+      if (qDev.use_viewport) {
+        pos -= qDev.viewport.pos;
+      }
+      // Для простоты - используем обратную матрицу
+      // (в реальности нужно реализовать обратное преобразование)
+      return inverse_transform(qDev.xf, pos);
+    }
+    static vec2d world_to_screen(QapDev& qDev, const vec2d& world_pos) {
+      vec2f pos(world_pos);
+      if (qDev.use_xf) {
+        pos = qDev.xf * pos;
+      }
+      if (qDev.use_viewport) {
+        pos += qDev.viewport.pos;
+      }
+      return pos;
+    }
+    static vec2d transform_point(QapDev& qDev, const vec2d& point, const transform2f& local_xf) {
+      vec2f pos(point);
+      pos = local_xf * pos;
+      if (qDev.use_xf) {
+        pos = qDev.xf * pos;
+      }
+      if (qDev.use_viewport) {
+        pos += qDev.viewport.pos;
+      }
+      return pos;
+    }
+    static vec2d inverse_transform(const transform2f& xf, const vec2f& v) {
+      // v = xf.r * result + xf.p
+      // result = xf.r^(-1) * (v - xf.p)
+      vec2f temp = v - xf.p;
+      // Обратная матрица вращения (транспонированная для ортонормированной)
+      float x = xf.r.col1.x * temp.x + xf.r.col1.y * temp.y;
+      float y = xf.r.col2.x * temp.x + xf.r.col2.y * temp.y;
+      return vec2d(x, y);
+    }
+  };
   void Draw(const t_layer&ref){
     Draw(ref.layers);
     Draw(ref.nodes);
@@ -757,8 +812,8 @@ public:
   }
   t_text*FindTextAt(const vec2d&p){
     for(auto&ex:w.cur.texts){
-      auto wp=t_offcentric_scope::screen_to_world(qDev.viewport,p,ex.pos,ex.dir,1.0,false);
-      if(wp.SqrMag()<mat_size*mat_size*0.25)return &ex;
+      //auto wp=ex.pos-;//t_xf_scope::screen_to_local(qDev.viewport,p,ex.pos,ex.dir,1.0);
+      if(ex.pos.dist_to_point_less_that_r(p,mat_size))return &ex;
     }
     return nullptr;
   }
