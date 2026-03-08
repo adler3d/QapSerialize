@@ -789,42 +789,7 @@ public:
     qDev.color=0xffffffff;
     qap_text::draw(qDev,p,s);
     sf_draw();
-  }/*
-  void sf_draw_with_small3dlib()
-  {
-    // 1. Подготовка framebuffer
-    std::vector<QapColor> framebuffer(viewport.size.x * viewport.size.y);
-    g_framebuffer = framebuffer.data();
-    g_fb_width = viewport.size.x;
-    
-    // 2. Настройка камеры
-    S3L_Camera camera;
-    S3L_cameraInit(&camera);
-    camera.focalLength = S3L_F; // FOV ~90°
-    camera.transform.translation.z = -3 * S3L_F; // отодвинуть камеру
-    
-    // 3. Создание модели
-    S3L_Model3D model = create_model_from_qdev(qDev);
-    model.config.backfaceCulling = 0; // CCW culling
-    
-    // 4. Сцена
-    S3L_Scene scene;
-    S3L_sceneInit(&model, 1, &scene);
-    scene.camera = camera;
-    
-    // 5. Рендер
-    S3L_newFrame();  // очистка буферов
-    S3L_drawScene(scene);
-    
-    // 6. Сохранение результата
-    TLoaderEnv::save_tex(viewport.size.x, viewport.size.y, 
-                        (TLoaderEnv::bgra*)framebuffer.data(), "out.png");
-    
-    // Cleanup
-    int gg=1;
-    std::cout<<"end"<<std::endl;std::cin>>gg;
-    g_framebuffer = nullptr;
-  }*/
+  }
   void sf_draw(){
     if(bool no_need_sf_render=true)return;
     t_canvas2 canvas;
@@ -836,16 +801,8 @@ public:
       auto&c=qDev.VBA[qDev.IBA[i+2]].get_pos().inv_y()+offset;
       canvas.draw_trigon_with_msaa_on_edges(a,b,c,qDev.VBA[qDev.IBA[i]].color);
     }
-    //c.draw_trigon_with_msaa_on_edges(vec2d(0,0),vec2d(32,32),vec2d(0,32),0xffffffff);
-    /*for(int i=0;i<c.mem.size();i++){
-      auto&ex=c.mem[i];
-      if((ex.b!=0&&ex.b!=255)||(ex.r!=0&&ex.r!=255)||(ex.g!=0&&ex.g!=255)||(ex.a!=0&&ex.a!=255)){
-        int gg=1;
-      }
-    }*/
     vector<QapColor> out;canvas.resolve_to_final(out);
     FastGaussianBlur fgb8(8),fgb96(96);
-    //fgb.applySeparable(out,out,canvas.wh.x,canvas.wh.y);
     {
 
       QapColor bg(255,255,255,255);bg=0x00ffffff;double inv255=1.0/255;
