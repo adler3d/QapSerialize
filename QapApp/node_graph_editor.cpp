@@ -826,6 +826,7 @@ public:
     g_framebuffer = nullptr;
   }*/
   void sf_draw(){
+    if(bool no_need_sf_render=true)return;
     t_canvas2 canvas;
     canvas.mem.resize(viewport.size.x*viewport.size.y);canvas.wh=vec2i(viewport.size.x,viewport.size.y);
     auto os2d=viewport.size*0.5;auto offset=vec2f(os2d.x,os2d.y);
