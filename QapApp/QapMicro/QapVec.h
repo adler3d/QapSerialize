@@ -278,6 +278,7 @@ public:
   friend bool operator==(const vec2f&u,const vec2f&v){return (u.x==v.x)&&(u.y==v.y);}
   friend bool operator!=(const vec2f&u,const vec2f&v){return (u.x!=v.x)||(u.y!=v.y);}
   vec2f operator-()const{return vec2f(-x,-y);}
+  vec2f inv_y()const{return vec2f(x,-y);}
 };
 inline static real dot(const vec2f&a,const vec2f&b){return a.x*b.x+a.y*b.y;}
 inline static real cross(const vec2f&a,const vec2f&b){return a.x*b.y-a.y*b.x;}

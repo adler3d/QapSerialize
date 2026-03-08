@@ -1,5 +1,10 @@
 #define DEF_PRO_FULL
 #include "StdAfx.h"
+#include <iostream>
+#include <assert.h>
+#include "ImgLoader.h"
+#include "Dynamic.h"
+
 #include "QapLiteCutted.h"
 #include "TQapGameV2.inl"
 #include "curve_resampler.hpp"
@@ -582,7 +587,7 @@ public:
           qDev.DrawPolyLine(ref.line,ref.line_size,false);
         }else{
           if(w.hq_links){
-            DrawPolyLineDense(a,b,ref.line,ref.a.n->color,ref.b.n->color,ref.line_size,3,1,ref.line_pulse_koef);
+            DrawPolyLineDense(a,b,ref.line,ref.a.n->color,ref.b.n->color,ref.line_size,3,1,ref.line_pulse_koef,w.tick*0.01);
           }else{
             DrawPolyLine(a,b,ref.line,ref.a.n->color,ref.b.n->color,ref.line_size);
           }
@@ -716,9 +721,10 @@ public:
     double line_size,
     int k = 4, // сколько сегментов между каждой парой соседей
     double pn=8,
-    double pulse_koef=1.0
+    double pulse_koef=1.0,
+    double time=0.0
   ) {
-    return CurveResampler::DrawPolyLineDenseOptimized(qDev,a,b,arr,bef,aft,line_size,k,pn,pulse_koef);
+    return CurveResampler::DrawPolyLineDenseOptimized(qDev,a,b,arr,bef,aft,line_size,k,pn,pulse_koef,time);
     if (k <= 0) k = 1;
 
     // Соберём полный путь: [a] + arr + [b]
@@ -748,7 +754,7 @@ public:
       vec2d pb = Lerp(full[i], full[i + 1], (sub + 1) * (1.0 / k));
 
       // Общий прогресс по всей линии (0..1)
-      double global_t = seg * (1.0 / total_segments);
+      double global_t = seg * (1.0 / total_segments)+time;
       double pulse = sin(global_t * Pi * pn); // pn полных волны по всей длине
       //double c = cos(global_t * Pi * 4);
       double ls = line_size + Lerp(0.0, line_size, 1.0 * (1.0 + pulse)); // от line_size до 2*line_size
@@ -782,6 +788,86 @@ public:
     qap_text::draw(qDev,p+vec2d(+1,-1),s);
     qDev.color=0xffffffff;
     qap_text::draw(qDev,p,s);
+    sf_draw();
+  }/*
+  void sf_draw_with_small3dlib()
+  {
+    // 1. Подготовка framebuffer
+    std::vector<QapColor> framebuffer(viewport.size.x * viewport.size.y);
+    g_framebuffer = framebuffer.data();
+    g_fb_width = viewport.size.x;
+    
+    // 2. Настройка камеры
+    S3L_Camera camera;
+    S3L_cameraInit(&camera);
+    camera.focalLength = S3L_F; // FOV ~90°
+    camera.transform.translation.z = -3 * S3L_F; // отодвинуть камеру
+    
+    // 3. Создание модели
+    S3L_Model3D model = create_model_from_qdev(qDev);
+    model.config.backfaceCulling = 0; // CCW culling
+    
+    // 4. Сцена
+    S3L_Scene scene;
+    S3L_sceneInit(&model, 1, &scene);
+    scene.camera = camera;
+    
+    // 5. Рендер
+    S3L_newFrame();  // очистка буферов
+    S3L_drawScene(scene);
+    
+    // 6. Сохранение результата
+    TLoaderEnv::save_tex(viewport.size.x, viewport.size.y, 
+                        (TLoaderEnv::bgra*)framebuffer.data(), "out.png");
+    
+    // Cleanup
+    int gg=1;
+    std::cout<<"end"<<std::endl;std::cin>>gg;
+    g_framebuffer = nullptr;
+  }*/
+  void sf_draw(){
+    t_canvas2 canvas;
+    canvas.mem.resize(viewport.size.x*viewport.size.y);canvas.wh=vec2i(viewport.size.x,viewport.size.y);
+    auto os2d=viewport.size*0.5;auto offset=vec2f(os2d.x,os2d.y);
+    for(int i=0;i+2<qDev.IPos;i+=3){
+      auto&a=qDev.VBA[qDev.IBA[i+0]].get_pos().inv_y()+offset;
+      auto&b=qDev.VBA[qDev.IBA[i+1]].get_pos().inv_y()+offset;
+      auto&c=qDev.VBA[qDev.IBA[i+2]].get_pos().inv_y()+offset;
+      canvas.draw_trigon_with_msaa_on_edges(a,b,c,qDev.VBA[qDev.IBA[i]].color);
+    }
+    //c.draw_trigon_with_msaa_on_edges(vec2d(0,0),vec2d(32,32),vec2d(0,32),0xffffffff);
+    /*for(int i=0;i<c.mem.size();i++){
+      auto&ex=c.mem[i];
+      if((ex.b!=0&&ex.b!=255)||(ex.r!=0&&ex.r!=255)||(ex.g!=0&&ex.g!=255)||(ex.a!=0&&ex.a!=255)){
+        int gg=1;
+      }
+    }*/
+    vector<QapColor> out;canvas.resolve_to_final(out);
+    FastGaussianBlur fgb8(8),fgb96(96);
+    //fgb.applySeparable(out,out,canvas.wh.x,canvas.wh.y);
+    {
+
+      QapColor bg(255,255,255,255);bg=0x00ffffff;double inv255=1.0/255;
+      auto p=out,q=out,t=out;auto w=canvas.wh.x,h=canvas.wh.y;
+      fgb8.applySeparable(q,q,w,h);
+      fgb96.applySeparable(p,p,w,h);
+      for(int y=0;y<h;y++)
+        for(int x=0;x<w;x++){
+          auto id=x+y*w;
+          auto&P=p[id];
+          auto&Q=q[id];
+          auto&T=t[id];
+          auto c=T;
+          if(c.a!=255){
+            #define F(r){auto k=(255-P.a)*inv255;T.r=Lerp(pow(real(P.r*inv255),3)*255,real(Q.r),1.0-(k));if(c.a!=0)T.r=Lerp(c.r,T.r,c.a*inv255);}
+            F(r)F(g)F(b)T.a=255;
+            #undef F
+          }
+        }
+      out=std::move(t);
+    }
+    TLoaderEnv::save_tex(canvas.wh.x,canvas.wh.y,(TLoaderEnv::bgra*)&out[0],"out.png");
+    int gg=1;
   }
   t_node_with_port FindNP(const vec2d&p){
     t_node_with_port np;
@@ -835,7 +921,6 @@ void main_2025_12_17(IEnvRTTI&Env){
   builder.qDev.viewport=builder.viewport;
   builder.DoNice(true);
 }
-
 void win_main_init(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow){
   static GlobalEnv gEnv(hInstance,hPrevInstance,lpCmdLine,nCmdShow);
 }
@@ -857,6 +942,19 @@ namespace
     }
     void Run(IEnvRTTI&Env)override
     {
+      if(false){
+        t_canvas c;
+        c.mem.resize(64*64,0xff000000);c.wh=vec2i(64,64);
+        c.draw_trigon_with_msaa_on_edges(vec2d(0,0),vec2d(32,32),vec2d(0,32),0xffffffff);
+        for(int i=0;i<c.mem.size();i++){
+          auto&ex=c.mem[i];
+          if((ex.b!=0&&ex.b!=255)||(ex.r!=0&&ex.r!=255)||(ex.g!=0&&ex.g!=255)||(ex.a!=0&&ex.a!=255)){
+            int gg=1;
+          }
+        }
+        TLoaderEnv::save_tex(c.wh.x,c.wh.y,(TLoaderEnv::bgra*)&c.mem[0],"out.png");
+      }
+      //for
       main_2025_12_17(Env);
       int gg=1;
     }
