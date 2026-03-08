@@ -42,9 +42,12 @@ ADDBEG()\
 ADDVAR(TSelfPtr<SelfClass>,Self,DEF,$,$)\
 ADDVAR(bool,enabled,SET,true,$)\
 ADDVAR(vec2d,pos,DEF,$,$)\
+ADDVAR(vec2d,real_pos,DEF,$,$)\
+ADDVAR(real,seed,SET,0,$)\
 ADDVAR(double,r,SET,32,$)\
 ADDVAR(QapColor,color,SET,0xff000000,$)\
 ADDVAR(bool,provider,SET,false,$)\
+ADDVAR(bool,underprovider,SET,false,$)\
 ADDVAR(vector<t_port>,ports,DEF,$,$)\
 ADDVAR(string,name,DEF,$,$)\
 ADDEND()
@@ -80,6 +83,8 @@ ADDVAR(t_endpoint,b,DEF,$,$)\
 ADDVAR(double,line_size,SET,4,$)\
 ADDVAR(vector<vec2d>,line,DEF,$,$)\
 ADDVAR(double,line_pulse_koef,SET,1,$)\
+ADDVAR(double,h,SET,0,$)\
+ADDVAR(bool,use_h,SET,false,$)\
 ADDEND()
 //=====+>>>>>t_link
 #include "QapGenStruct.inl"
@@ -192,6 +197,7 @@ public:
 #define DEF_PRO_VARIABLE(ADDBEG,ADDVAR,ADDEND)\
 ADDBEG()\
 ADDVAR(int,tick,SET,0,$)\
+ADDVAR(int,animation_start_tick,SET,-1,$)\
 ADDVAR(vector<t_layer>,layers,DEF,$,$)\
 ADDVAR(int,layer_id,SET,-1,$)\
 ADDVAR(t_layer,cur,DEF,$,$)\
@@ -369,6 +375,26 @@ public:
       n.name=IToS(acc[&n].n);
     }
   }
+  void DoPropUnderprovider(){
+    auto&nodes=w.cur.nodes;
+    auto&links=w.cur.links;
+    vector<t_node*> cur,next;map<t_node*,int> V;
+    for(auto&ex:nodes)if(ex.provider){cur.push_back(&ex);}
+    for(int iter=1;cur.size();iter++){
+      for(auto&f:cur){
+        for(auto&ex:links){
+          if(!ex.a.n||!ex.b.n)continue;
+          if(ex.a.n.get()!=f&&ex.b.n.get()!=f)continue;
+          auto*oe=ex.a.n.get()==f?ex.b.n.get():ex.a.n.get();
+          if(oe->provider||oe==f)continue;
+          oe->underprovider=true;
+          auto&v=V[oe];if(v)continue;v=iter;
+          next.push_back(oe);
+        }
+      }
+      return;
+    }
+  }
   void DoRndPulseKoef(vector<t_link>&arr){
     for(auto&ex:arr){
       ex.line_pulse_koef=real(rand())*0.75/RAND_MAX+0.25;
@@ -442,6 +468,22 @@ public:
         ex.color=0xff000000;
         ex.provider=false;
         ex.name.clear();
+      }
+    }
+    //w.animation_start_tick=-1;
+    if(kb.OnDown('G')){
+      bool first=w.animation_start_tick==-1;
+      w.animation_start_tick=w.tick;
+      DoPropUnderprovider();
+      if(first)for(auto&ex:w.cur.nodes){
+        ex.seed=(rand()/real(RAND_MAX)-0.5)*2.0;
+        ex.real_pos=ex.pos;
+      }
+    }
+    if(w.animation_start_tick!=-1){
+      for(auto&ex:w.cur.links)remake_link_line(ex);
+      for(auto&ex:w.cur.nodes)if(!ex.provider&&!ex.underprovider){
+        ex.pos=ex.real_pos+Vec2dEx(ex.seed*Pi2+Sign(ex.seed)*w.tick*0.09,32);
       }
     }
     if(kb.OnDown('~')){
@@ -609,8 +651,63 @@ public:
       DrawPolyLine(a,b,ref.line,c,c,ref.line_size,8);
     }
   }
+  static double CatmullRomEx(double p1,double p2,double p3,double p4,double t){
+    double a=p2;
+    double b=p3-p1;
+    double c=2*p1-5*p2+4*p3-p4;
+    double d=3*(p2-p3)+p4-p1;
+    d*=t;d+=c;d*=t;d+=b;d*=t;
+    return a+d*0.5;
+  }
+  static vec2d VCatmullRom(vec2d a_,vec2d b,vec2d c,vec2d d_,double t){
+    vec2d a=a_;vec2d d=d_;
+    double m=(b-c).Mag();
+    {vec2d v=a-b;double D=v.Mag();if(D)a=b+v*(m/D);}
+    {vec2d v=d-c;double D=v.Mag();if(D)d=c+v*(m/D);}
+    return vec2d(
+      CatmullRomEx(a.x,b.x,c.x,d.x,t),
+      CatmullRomEx(a.y,b.y,c.y,d.y,t)
+    );
+  }
+  void remake_link_line(t_link&ref){
+    if(!ref.a.n||!ref.b.n||ref.a.n->provider||ref.b.n->provider||ref.line.size()/2<1)return;
+    if(!ref.use_h){
+      auto a=ref.a.n->pos+get_offset(ref.a);
+      auto b=ref.b.n->pos+get_offset(ref.b);
+      auto c=(a+b)*0.5;
+      auto rlc=ref.line.size()?ref.line[ref.line.size()/2]:c;
+      auto h=rlc.dist_to(c);
+      auto n=ref.line.size();
+      ref.line.clear();
+      c=rlc;
+      for(int i=0;i<n/2;i++){
+        ref.line.push_back(VCatmullRom(a,a,c,b,i/double(n/2)));
+      }
+      for(int i=n/2-1;i>=0;i--){
+        ref.line.push_back(VCatmullRom(b,b,c,a,i/double(n/2)));
+      }
+      real s=(c-a).Rot(b-a).y>0?+1:-1;
+      ref.h=h*s;
+      ref.use_h=true;
+    }else{
+      auto a=ref.a.n->pos+get_offset(ref.a);
+      auto b=ref.b.n->pos+get_offset(ref.b);
+      auto c=(a+b)*0.5;
+      auto n=ref.line.size();
+      ref.line.clear();
+      c=a+vec2d((a-b).Mag()*0.5,ref.h).UnRot(b-a);
+      //c=rlc;
+      for(int i=0;i<n/2;i++){
+        ref.line.push_back(VCatmullRom(a,a,c,b,i/double(n/2)));
+      }
+      for(int i=n/2-1;i>=0;i--){
+        ref.line.push_back(VCatmullRom(b,b,c,a,i/double(n/2)));
+      }
+    }
+  }
   void Draw(const t_node&ref){
     if(!ref.enabled)return;
+    auto&ast=w.animation_start_tick;
     if(!ref.provider){
       qDev.color=ref.color;
       qDev.DrawCircleEx(ref.pos,0,ref.r,24,0);
@@ -618,7 +715,7 @@ public:
       qDev.color=ref.color;
       qDev.DrawCircleEx(ref.pos,0,16,24,0);
       qDev.color=0xff000000;
-      qDev.DrawCircleEx(ref.pos,16,ref.r,24,0);
+      qDev.DrawCircleEx(ref.pos,16,Lerp(0.0,ref.r,sin(ref.seed*Pi2+w.tick*0.09)),24,0);
     }
     qDev.color=0xff000000;
     qDev.DrawCircleEx(ref.pos,ref.r-4,ref.r,24,0);
@@ -791,7 +888,7 @@ public:
     sf_draw();
   }
   void sf_draw(){
-    if(bool no_need_sf_render=true)return;
+    if(bool no_need_sf_render=w.animation_start_tick==-1||!(w.animation_start_tick+5<w.tick))return;
     t_canvas2 canvas;
     canvas.mem.resize(viewport.size.x*viewport.size.y);canvas.wh=vec2i(viewport.size.x,viewport.size.y);
     auto os2d=viewport.size*0.5;auto offset=vec2f(os2d.x,os2d.y);
@@ -824,7 +921,7 @@ public:
         }
       out=std::move(t);
     }
-    TLoaderEnv::save_tex(canvas.wh.x,canvas.wh.y,(TLoaderEnv::bgra*)&out[0],"out.png");
+    TLoaderEnv::save_tex(canvas.wh.x,canvas.wh.y,(TLoaderEnv::bgra*)&out[0],("out"+std::to_string(w.tick)+".png").c_str());
     int gg=1;
   }
   t_node_with_port FindNP(const vec2d&p){

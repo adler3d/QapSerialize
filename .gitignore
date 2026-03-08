@@ -17,3 +17,6 @@
 /ReleaseO2
 /Release/out.png
 /Release/out2.png
+*.png
+*.mp4
+*.gif
